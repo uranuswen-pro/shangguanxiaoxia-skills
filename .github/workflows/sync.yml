@@ -1,0 +1,30 @@
+name: Sync to ClawHub
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install ClawHub
+        run: npm install -g clawhub
+        
+      - name: Publish Skills
+        run: |
+          for dir in */; do
+            skill_name=$(basename "$dir")
+            echo "Publishing $skill_name..."
+            clawhub publish "./$skill_name" --slug "$skill_name" --name "$skill_name" || true
+          done
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
